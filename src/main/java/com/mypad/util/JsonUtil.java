@@ -15,6 +15,7 @@ import org.bson.Document;
 
 import com.mypad.model.ChildPadInfo;
 import com.mypad.model.Pad;
+import com.mypad.model.User;
 
 /**
  * Clean, lightweight JSON utility that formats dates to standard ISO-8601,
@@ -74,7 +75,7 @@ public final class JsonUtil {
                     sb.append("\\t");
                     break;
                 default:
-                    if (c < 32 || c >= 127 && c <= 159) {
+                    if (c < 32 || (c >= 127 && c <= 159)) {
                         String hex = Integer.toHexString(c);
                         sb.append("\\u");
                         for (int k = 0; k < 4 - hex.length(); k++) {
@@ -90,22 +91,55 @@ public final class JsonUtil {
     }
 
     /**
-     * Serializes a Pad object to standard JSON.
+     * Serializes a User object to standard JSON (omitting passwordHash and salt!).
      */
-    public static String padToJson(Pad pad) {
-        if (pad == null) {
+    public static String userToJson(User user) {
+        if (user == null) {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
         sb.append("{");
+        sb.append("\"username\":\"").append(escape(user.getUsername())).append("\",");
+        sb.append("\"email\":\"").append(escape(user.getEmail())).append("\",");
+        sb.append("\"createdAt\":\"").append(formatIso(user.getCreatedAt())).append("\"");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Serializes a Pad object to standard JSON with viewer permissions.
+     */
+    public static String padToJson(Pad pad, String viewerUsername) {
+        if (pad == null) {
+            return "null";
+        }
+        boolean isOwner = pad.getOwnerUsername() != null && viewerUsername != null && pad.getOwnerUsername().equalsIgnoreCase(viewerUsername.trim());
+        boolean isReadOnly = "read-only".equalsIgnoreCase(pad.getVisibility()) && !isOwner;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("\"success\":true,");
         sb.append("\"path\":\"").append(escape(pad.getPath())).append("\",");
         sb.append("\"content\":\"").append(escape(pad.getContent())).append("\",");
         sb.append("\"createdAt\":\"").append(formatIso(pad.getCreatedAt())).append("\",");
         sb.append("\"updatedAt\":\"").append(formatIso(pad.getUpdatedAt())).append("\",");
         sb.append("\"version\":").append(pad.getVersion()).append(",");
-        sb.append("\"parentPath\":\"").append(escape(pad.getParentPath())).append("\"");
+        sb.append("\"parentPath\":\"").append(escape(pad.getParentPath())).append("\",");
+        sb.append("\"ownerUsername\":").append(pad.getOwnerUsername() != null ? "\"" + escape(pad.getOwnerUsername()) + "\"" : "null").append(",");
+        sb.append("\"visibility\":\"").append(escape(pad.getVisibility())).append("\",");
+        sb.append("\"theme\":\"").append(escape(pad.getTheme())).append("\",");
+        sb.append("\"isOwner\":").append(isOwner).append(",");
+        sb.append("\"isReadOnly\":").append(isReadOnly).append(",");
+        sb.append("\"wordCount\":").append(pad.getWordCount());
         sb.append("}");
         return sb.toString();
+    }
+
+    /**
+     * Serializes a Pad object to standard JSON without viewer context.
+     */
+    public static String padToJson(Pad pad) {
+        return padToJson(pad, null);
     }
 
     /**

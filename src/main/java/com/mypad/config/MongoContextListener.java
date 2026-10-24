@@ -16,7 +16,7 @@ import com.mongodb.client.model.Indexes;
 
 /**
  * Manages the lifecycle of shared MongoDB resources with the Servlet container.
- * Closes the connection pool gracefully when the web application is stopped or undeployed.
+ * Creates necessary indexes for both pads and user collections.
  */
 @WebListener
 public class MongoContextListener implements ServletContextListener {
@@ -25,24 +25,41 @@ public class MongoContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        LOGGER.info("MyPad web application starting. Initializing MongoDB connection...");
+        LOGGER.info("MyPad web application starting. Initializing MongoDB connection & indexes...");
         try {
             MongoDatabase db = MongoConfig.getDatabase();
+            
+            // 1. Pads collection indexes
             MongoCollection<Document> padsCollection = db.getCollection(MongoConfig.getPadsCollectionName());
-
-            // Create index on parentPath for efficient child pad listing
             padsCollection.createIndex(
                     Indexes.ascending("parentPath"),
                     new IndexOptions().name("idx_parentPath")
             );
-
-            // Create index on updatedAt
             padsCollection.createIndex(
                     Indexes.descending("updatedAt"),
                     new IndexOptions().name("idx_updatedAt")
             );
+            padsCollection.createIndex(
+                    Indexes.ascending("ownerUsername"),
+                    new IndexOptions().name("idx_ownerUsername")
+            );
+            padsCollection.createIndex(
+                    Indexes.ascending("visibility"),
+                    new IndexOptions().name("idx_visibility")
+            );
 
-            LOGGER.info("MongoDB initialized and indexes verified for collection: " + MongoConfig.getPadsCollectionName());
+            // 2. Users collection indexes (email unique, username unique)
+            MongoCollection<Document> usersCollection = db.getCollection("users");
+            usersCollection.createIndex(
+                    Indexes.ascending("username"),
+                    new IndexOptions().unique(true).name("idx_user_username")
+            );
+            usersCollection.createIndex(
+                    Indexes.ascending("email"),
+                    new IndexOptions().unique(true).name("idx_user_email")
+            );
+
+            LOGGER.info("MongoDB initialized and indexes verified for pads & users.");
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed during MongoDB initialization in ContextListener", e);
         }

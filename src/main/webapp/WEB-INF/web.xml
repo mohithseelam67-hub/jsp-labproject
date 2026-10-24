@@ -10,6 +10,7 @@
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
+    <!-- CORS Filter -->
     <filter>
         <filter-name>CorsFilter</filter-name>
         <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
@@ -19,7 +20,7 @@
         </init-param>
         <init-param>
             <param-name>cors.allowed.methods</param-name>
-            <param-value>GET,POST,HEAD,OPTIONS</param-value>
+            <param-value>GET,POST,HEAD,OPTIONS,PUT,DELETE</param-value>
         </init-param>
         <init-param>
             <param-name>cors.allowed.headers</param-name>
@@ -31,8 +32,91 @@
         <url-pattern>/api/*</url-pattern>
     </filter-mapping>
 
+    <!-- Database Lifecycle Listener -->
     <listener>
         <listener-class>com.mypad.config.MongoContextListener</listener-class>
     </listener>
+
+    <!-- Clean Route Mappings -->
+    <servlet>
+        <servlet-name>PadServlet</servlet-name>
+        <jsp-file>/pad.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PadServlet</servlet-name>
+        <url-pattern>/pad</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LoginServlet</servlet-name>
+        <jsp-file>/login.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LoginServlet</servlet-name>
+        <url-pattern>/login</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>DashboardServlet</servlet-name>
+        <jsp-file>/dashboard.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DashboardServlet</servlet-name>
+        <url-pattern>/dashboard</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>FeaturesServlet</servlet-name>
+        <jsp-file>/features.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FeaturesServlet</servlet-name>
+        <url-pattern>/features</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>HowItWorksServlet</servlet-name>
+        <jsp-file>/how-it-works.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>HowItWorksServlet</servlet-name>
+        <url-pattern>/how-it-works</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>UseCasesServlet</servlet-name>
+        <jsp-file>/use-cases.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UseCasesServlet</servlet-name>
+        <url-pattern>/use-cases</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>OnlineNotepadServlet</servlet-name>
+        <jsp-file>/online-notepad.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>OnlineNotepadServlet</servlet-name>
+        <url-pattern>/online-notepad</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ForDevelopersServlet</servlet-name>
+        <jsp-file>/for-developers.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ForDevelopersServlet</servlet-name>
+        <url-pattern>/for-developers</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ForStudentsServlet</servlet-name>
+        <jsp-file>/for-students.jsp</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ForStudentsServlet</servlet-name>
+        <url-pattern>/for-students</url-pattern>
+    </servlet-mapping>
 
 </web-app>

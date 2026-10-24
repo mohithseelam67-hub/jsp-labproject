@@ -28,22 +28,21 @@
     }
 
     try {
+        String currentUsername = (String) session.getAttribute("username");
+
         PadDao dao = new PadDao();
-        Pad pad = dao.findOrCreate(pathParam);
+        Pad pad = dao.findOrCreate(pathParam, currentUsername);
+
+        // Privacy check
+        if ("private".equalsIgnoreCase(pad.getVisibility())) {
+            if (pad.getOwnerUsername() != null && !pad.getOwnerUsername().equalsIgnoreCase(currentUsername)) {
+                JsonUtil.sendError(response, HttpServletResponse.SC_FORBIDDEN, "This pad is private to @" + pad.getOwnerUsername());
+                return;
+            }
+        }
 
         response.setStatus(HttpServletResponse.SC_OK);
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("\"success\":true,");
-        sb.append("\"path\":\"").append(JsonUtil.escape(pad.getPath())).append("\",");
-        sb.append("\"content\":\"").append(JsonUtil.escape(pad.getContent())).append("\",");
-        sb.append("\"createdAt\":\"").append(JsonUtil.formatIso(pad.getCreatedAt())).append("\",");
-        sb.append("\"updatedAt\":\"").append(JsonUtil.formatIso(pad.getUpdatedAt())).append("\",");
-        sb.append("\"version\":").append(pad.getVersion()).append(",");
-        sb.append("\"parentPath\":\"").append(JsonUtil.escape(pad.getParentPath())).append("\"");
-        sb.append("}");
-
-        out.print(sb.toString());
+        out.print(JsonUtil.padToJson(pad, currentUsername));
         out.flush();
     } catch (IllegalArgumentException e) {
         JsonUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());

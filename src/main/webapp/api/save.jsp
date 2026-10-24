@@ -41,8 +41,10 @@
             version = ((Number) versionObj).intValue();
         }
 
+        String currentUsername = (String) session.getAttribute("username");
+
         PadDao dao = new PadDao();
-        PadDao.SaveResult result = dao.save(path, content, version);
+        PadDao.SaveResult result = dao.save(path, content, version, currentUsername);
 
         if (result.isConflict()) {
             response.setStatus(HttpServletResponse.SC_CONFLICT); // 409
@@ -62,26 +64,18 @@
         if (result.isSuccess()) {
             Pad updatedPad = result.getPad();
             response.setStatus(HttpServletResponse.SC_OK);
-            StringBuilder sb = new StringBuilder();
-            sb.append("{");
-            sb.append("\"success\":true,");
-            sb.append("\"path\":\"").append(JsonUtil.escape(updatedPad.getPath())).append("\",");
-            sb.append("\"content\":\"").append(JsonUtil.escape(updatedPad.getContent())).append("\",");
-            sb.append("\"createdAt\":\"").append(JsonUtil.formatIso(updatedPad.getCreatedAt())).append("\",");
-            sb.append("\"updatedAt\":\"").append(JsonUtil.formatIso(updatedPad.getUpdatedAt())).append("\",");
-            sb.append("\"version\":").append(updatedPad.getVersion()).append(",");
-            sb.append("\"parentPath\":\"").append(JsonUtil.escape(updatedPad.getParentPath())).append("\"");
-            sb.append("}");
-            out.print(sb.toString());
+            out.print(JsonUtil.padToJson(updatedPad, currentUsername));
             out.flush();
             return;
         }
 
         JsonUtil.sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database write could not be confirmed");
+    } catch (SecurityException e) {
+        JsonUtil.sendError(response, HttpServletResponse.SC_FORBIDDEN, e.getMessage());
     } catch (IllegalArgumentException e) {
         JsonUtil.sendError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
     } catch (Exception e) {
         application.log("Error handling POST save pad", e);
-        JsonUtil.sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database or server error saving pad");
+        JsonUtil.sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database or server error saving pad: " + e.getMessage());
     }
 %>
